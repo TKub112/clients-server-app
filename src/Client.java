@@ -30,10 +30,7 @@ public class Client
             {
                 System.out.println(dis.readUTF());
                 String tosend = scn.nextLine();
-                dos.writeUTF(tosend);
 
-                // If client sends exit,close this connection  
-                // and then break from the while loop 
                 if(tosend.equals("Exit"))
                 {
                     System.out.println("Closing this connection : " + s);
@@ -41,10 +38,7 @@ public class Client
                     System.out.println("Connection closed");
                     break;
                 }
-
-                // printing date or time as requested by client 
-                String received = dis.readUTF();
-                System.out.println(received);
+                dos.writeUTF(tosend);
             }
 
             // closing resources 

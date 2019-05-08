@@ -59,6 +59,7 @@ class ClientHandler extends Thread
     final DataInputStream dis;
     final DataOutputStream dos;
     final Socket s;
+    HashMap<String, String> notifications = new HashMap<String, String>();
 
 
     // Constructor 
@@ -74,6 +75,9 @@ class ClientHandler extends Thread
     {
         String received;
         String toreturn;
+        //checking time to output notification
+        Thread t = new NotifyCheck(s, dis, dos,notifications);
+        System.out.println("aaaaaa");
         while (true)
         {
             try {
@@ -83,13 +87,20 @@ class ClientHandler extends Thread
 
                 // receive the answer from client 
                 received = dis.readUTF();
+                String text= new String(received);
 
                 // Ask user what he wants
-                dos.writeUTF("Give your text of notification");
+                dos.writeUTF("Give Time");
 
                 // receive the answer from client
                 received = dis.readUTF();
-                
+                String time= new String(received);
+
+               // System.out.println(text + "\n" + time);
+
+
+
+
                 if(received.equals("Exit"))
                 {
                     System.out.println("Client " + this.s + " sends exit...");
@@ -98,28 +109,12 @@ class ClientHandler extends Thread
                     System.out.println("Connection closed");
                     break;
                 }
-
-                // creating Date object 
-                Date date = new Date();
-
-                // write on output stream based on the 
-                // answer from the client 
-                switch (received) {
-
-                    case "Date" :
-                        toreturn = fordate.format(date);
-                        dos.writeUTF(toreturn);
-                        break;
-
-                    case "Time" :
-                        toreturn = fortime.format(date);
-                        dos.writeUTF(toreturn);
-                        break;
-
-                    default:
-                        dos.writeUTF("Invalid input");
-                        break;
+                System.out.println(time+ " " + text);
+                notifications.put(time, text);
+                for (String i : notifications.keySet()) {
+                    System.out.println(i);
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -135,4 +130,68 @@ class ClientHandler extends Thread
             e.printStackTrace();
         }
     }
-} 
+}
+
+
+class NotifyCheck extends Thread
+{
+    DateFormat fordate = new SimpleDateFormat("yyyy/MM/dd");
+    DateFormat fortime = new SimpleDateFormat("hh:mm:ss");
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket s;
+    HashMap<String, String> notifications = new HashMap<String, String>();
+
+
+    // Constructor
+    public NotifyCheck(Socket s, DataInputStream dis, DataOutputStream dos,HashMap<String, String> notifications)
+    {
+        this.s = s;
+        this.dis = dis;
+        this.dos = dos;
+        this.notifications = notifications;
+    }
+
+    @Override
+    public void run()
+    {
+        String received;
+        String toreturn;
+        while (true) {
+            System.out.println("aaaaaa");
+            try {
+
+            for (String i : notifications.keySet()) {
+                //check the time
+                Calendar cal = Calendar.getInstance();
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                System.out.println( sdf.format(cal.getTime()) );
+                SimpleDateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+                Date date1 = sdf1.parse(i, new java.text.ParsePosition(0));
+                System.out.println(date1 + "aktualny czas " + sdf.format(cal.getTime()));
+
+                if(sdf1==sdf)
+                {
+                    String val = (String)notifications.get(i);
+                    dos.writeUTF(val);
+                }
+
+            }
+
+                String g ="a";
+                if(g.equals("Exit")){
+                    this.s.close();
+                    this.dis.close();
+                    this.dos.close();
+                }
+            }
+            catch(IOException a) {
+
+            }
+        }
+
+    }
+
+
+
+}
