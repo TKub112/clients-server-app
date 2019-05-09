@@ -77,16 +77,20 @@ class ClientHandler extends Thread
         String toreturn;
         //checking time to output notification
         Thread t = new NotifyCheck(s, dis, dos,notifications);
-        System.out.println("aaaaaa");
+        t.start();
+        
         while (true)
         {
             try {
 
                 // Ask user what he wants 
+                
                 dos.writeUTF("Give your text of notification");
 
-                // receive the answer from client 
+                // receive the answer from client
+                //if(dis.avaiable()>0) 
                 received = dis.readUTF();
+                
                 String text= new String(received);
 
                 // Ask user what he wants
@@ -109,11 +113,12 @@ class ClientHandler extends Thread
                     System.out.println("Connection closed");
                     break;
                 }
+                /*
                 System.out.println(time+ " " + text);
                 notifications.put(time, text);
                 for (String i : notifications.keySet()) {
                     System.out.println(i);
-                }
+                }*/
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -158,19 +163,22 @@ class NotifyCheck extends Thread
         String received;
         String toreturn;
         while (true) {
-            System.out.println("aaaaaa");
             try {
 
             for (String i : notifications.keySet()) {
                 //check the time
                 Calendar cal = Calendar.getInstance();
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                String date = sdf.format(new Date());
                 System.out.println( sdf.format(cal.getTime()) );
                 SimpleDateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
                 Date date1 = sdf1.parse(i, new java.text.ParsePosition(0));
-                System.out.println(date1 + "aktualny czas " + sdf.format(cal.getTime()));
+                System.out.println(date1 + "aktualny czas " + sdf.format(cal.getTime()));   
+                String date1 = sdf1.format(new Date());
 
-                if(sdf1==sdf)
+
+
+                if(sdf.equals(SDFormat2))
                 {
                     String val = (String)notifications.get(i);
                     dos.writeUTF(val);
