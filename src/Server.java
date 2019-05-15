@@ -14,34 +14,36 @@ public class Server
     {
         // server is listening on port 5056 
         ServerSocket ss = new ServerSocket(5056);
+        System.out.println("Server is up, waiting for clients");
 
-        // running infinite loop for getting 
-        // client request 
+        // running infinite loop for getting
+        // client request
         while (true)
         {
             Socket s = null;
 
             try
             {
-                // socket object to receive incoming client requests 
+                // socket object to receive incoming client requests
                 s = ss.accept();
 
                 System.out.println("A new client is connected : " + s);
 
-                // obtaining input and out streams 
+                // obtaining input and out streams
                 DataInputStream dis = new DataInputStream(s.getInputStream());
                 DataOutputStream dos = new DataOutputStream(s.getOutputStream());
 
                 System.out.println("Assigning new thread for this client");
 
-                // create a new thread object 
+                // create a new thread object
                 Thread t = new ClientHandler(s, dis, dos);
 
-                // Invoking the start() method 
+                // Invoking the start() method
                 t.start();
 
             }
             catch (Exception e){
+
 
                 s.close();
                 e.printStackTrace();
@@ -51,18 +53,16 @@ public class Server
     }
 }
 
-// ClientHandler class 
+// ClientHandler class
 class ClientHandler extends Thread
 {
-    DateFormat fordate = new SimpleDateFormat("yyyy/MM/dd");
-    DateFormat fortime = new SimpleDateFormat("hh:mm:ss");
-    final DataInputStream dis;
-    final DataOutputStream dos;
-    final Socket s;
-    HashMap<String, String> notifications = new HashMap<String, String>();
+     DataInputStream dis;
+     DataOutputStream dos;
+     Socket s;
+     HashMap<String, String> notifications = new HashMap<String, String>();
 
 
-    // Constructor 
+    // Constructor
     public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos)
     {
         this.s = s;
@@ -78,19 +78,22 @@ class ClientHandler extends Thread
         //checking time to output notification
         Thread t = new NotifyCheck(s, dis, dos,notifications);
         t.start();
-        
+
+        //Thread t1 = new connectionChecker(s, dis, dos,notifications);
+        //t1.start();
+
         while (true)
         {
             try {
 
-                // Ask user what he wants 
-                
+                // Ask user what he wants
+
                 dos.writeUTF("Give your text of notification");
 
                 // receive the answer from client
-                //if(dis.avaiable()>0) 
+                //if(dis.avaiable()>0)
                 received = dis.readUTF();
-                
+
                 String text= new String(received);
 
                 // Ask user what he wants
@@ -113,26 +116,46 @@ class ClientHandler extends Thread
                     System.out.println("Connection closed");
                     break;
                 }
-                /*
+
                 System.out.println(time+ " " + text);
-                notifications.put(time, text);
+                notifications.put(time, text);/*
                 for (String i : notifications.keySet()) {
                     System.out.println(i);
                 }*/
 
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+            catch (IOException e) {
+                System.out.println("bug1");
+                this.dis=null;
+                this.s=null;
+                this.dos=null;
+                t=null;
+
+                e.printStackTrace();
+                return;
+            }
+
         }
 
         try
         {
-            // closing resources 
-            this.dis.close();
-            this.dos.close();
+            // closing resources
+           // this.dis=null;
 
+
+            //this.dis=null;
+            //this.dos=null;
+            //this.s=null;
+            this.dos.close();
+            this.s.close();
+            this.dis.close();
         }catch(IOException e){
+            System.out.println("bug2");
+            this.dis=null;
+            this.s=null;
+            this.dos=null;
             e.printStackTrace();
+            return;
         }
     }
 }
@@ -140,8 +163,8 @@ class ClientHandler extends Thread
 
 class NotifyCheck extends Thread
 {
-    DateFormat fordate = new SimpleDateFormat("yyyy/MM/dd");
-    DateFormat fortime = new SimpleDateFormat("hh:mm:ss");
+    DateFormat sdf1 = new SimpleDateFormat("hh:mm:ss");
+    DateFormat sdf = new SimpleDateFormat("hh:mm:ss");
     final DataInputStream dis;
     final DataOutputStream dos;
     final Socket s;
@@ -166,31 +189,38 @@ class NotifyCheck extends Thread
             try {
 
             for (String i : notifications.keySet()) {
+
                 //check the time
-                Calendar cal = Calendar.getInstance();
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                String date = sdf.format(new Date());
-                System.out.println( sdf.format(cal.getTime()) );
-                SimpleDateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+                sdf = new SimpleDateFormat("HH:mm:ss");
+                String datestr = sdf.format(new Date());
+                Date date = sdf.parse(datestr, new java.text.ParsePosition(0));
+
+                sdf1 = new SimpleDateFormat("HH:mm:ss");
                 Date date1 = sdf1.parse(i, new java.text.ParsePosition(0));
-                System.out.println(date1 + "aktualny czas " + sdf.format(cal.getTime()));   
-                String date1 = sdf1.format(new Date());
+
+                //String date2 = sdf1.format(new Date());
+                System.out.println(date1 + "aktualny czas " + date);
 
 
-
-                if(sdf.equals(SDFormat2))
+                if(date.equals(date1))
                 {
-                    String val = (String)notifications.get(i);
+                    String val = (String)this.notifications.get(i);
                     dos.writeUTF(val);
+                    //System.exit(0);
+                    this.notifications.remove(val);
+
                 }
+
 
             }
 
                 String g ="a";
-                if(g.equals("Exit")){
+                if(g.equals("Exit")) {
                     this.s.close();
                     this.dis.close();
                     this.dos.close();
+                    Thread.currentThread().interrupt();
+                    return;
                 }
             }
             catch(IOException a) {
@@ -203,3 +233,8 @@ class NotifyCheck extends Thread
 
 
 }
+
+
+
+
+
