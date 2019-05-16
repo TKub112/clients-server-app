@@ -125,13 +125,13 @@ class ClientHandler extends Thread
 
             }
             catch (IOException e) {
-                System.out.println("bug1");
+               
                 this.dis=null;
                 this.s=null;
                 this.dos=null;
                 t=null;
 
-                e.printStackTrace();
+                //e.printStackTrace();
                 return;
             }
 
@@ -150,11 +150,10 @@ class ClientHandler extends Thread
             this.s.close();
             this.dis.close();
         }catch(IOException e){
-            System.out.println("bug2");
             this.dis=null;
             this.s=null;
             this.dos=null;
-            e.printStackTrace();
+            //e.printStackTrace();
             return;
         }
     }
